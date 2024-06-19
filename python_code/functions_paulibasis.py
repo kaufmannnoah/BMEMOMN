@@ -7,7 +7,7 @@ def create_pauli_basis(n):
     p = s
     for i in range(n-1):
         p = [qt.tensor(pi, si) for pi in p for si in s]
-    r = [np.array(pi) for pi in p]
+    r = [np.array(pi.full()) for pi in p]
     return r
 
 def dm_to_bvector(a, basis, dim):
@@ -17,7 +17,7 @@ def dm_to_bvector(a, basis, dim):
 def ket_to_bvector(a, basis, dim):
     # convert ket to vector in pauli basis (if basis = pauli basis)
     aa = np.array(a).T
-    return 1 / dim * np.real(np.array([np.trace(np.dot(np.dot(np.conj(aa.T), bi), aa)) for bi in basis]))
+    return 1 / dim * np.real(np.array([np.dot(np.dot(np.conj(aa.T), bi), aa) for bi in basis]))
 
 def bvector_to_dm(v, basis):
     # convert vector in pauli basis to density matrix (if basis = pauli basis)

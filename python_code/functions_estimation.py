@@ -10,15 +10,15 @@ def sample_ginibre_ensemble(n, p, dim_n, dim_k=None):
     x_0 = np.zeros((n, dim_n**2))
     w_0 = np.ones(n)/n
     for i in range(n):
-        dm = qt.rand_dm_ginibre(N=dim_n, rank=dim_k)
-        x_0[i] = dm_to_bvector(dm, p, dim_n) # calculate pauli representation
+        dm = qt.rand_dm(dim_n, distribution= 'ginibre', rank= dim_k)
+        x_0[i] = dm_to_bvector(dm.full(), p, dim_n) # calculate pauli representation
     return x_0, w_0
 
 def POVM_randbasis(M, p, dim):
     # returns a complete set of orthogonal states, sampled according to the haar measure
     o = np.zeros((M, dim, dim**2))
     for m in range(M):
-        u = qt.rand_unitary_haar(dim)
+        u = qt.rand_unitary(dim, distribution= 'haar').full()
         o[m] = np.array([ket_to_bvector(u[i], p, dim) for i in range(dim)])
     return o
 
@@ -26,9 +26,9 @@ def POVM_randbasis_2meas(M, p, dim):
     #
     o = np.zeros((M, 2, dim**2))
     for m in range(M):
-        u = qt.rand_unitary_haar(dim)
+        u = qt.rand_unitary(dim, distribution= 'haar').full()
         proj = ket_to_bvector(u[0], p, dim)
-        remainder = dm_to_bvector(qt.qeye(dim)-bvector_to_dm(proj, p), p, dim)
+        remainder = dm_to_bvector(qt.qeye(dim).full()-bvector_to_dm(proj, p).full(), p, dim)
         o[m] = np.array([proj, remainder])
     return o
 
