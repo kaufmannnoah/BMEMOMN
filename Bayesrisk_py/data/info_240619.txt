@@ -1,0 +1,14 @@
+n_q = 2 # number of Qubits - fixed in this implementation
+dim = 2**n_q # dimension of Hilbert space
+p = create_pauli_basis(n_q) # create Pauli basis
+M = [1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024] # number of measurements
+L = 10000 # number of sampling points
+
+#AVERAGES FOR BAYES RISK ESTIMATION
+R = L # number of different rho_0 in ensemble
+rep_O = 1 # number of repetition per measurements
+
+out_ar = np.zeros((4, 3, len(M), rep_O, L)) # output array
+
+4: fid, n_ess, w_max, duration
+3: Pauli, Rand, Rand-2POVM
