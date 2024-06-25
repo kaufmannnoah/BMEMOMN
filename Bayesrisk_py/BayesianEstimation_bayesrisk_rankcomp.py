@@ -6,7 +6,7 @@ from functions_estimation import *
 
 ########################################################
 #PARAMETERS ESTIMATION
-n_q = np.array([4, 3, 2, 1]) # number of Qubits - fixed in this implementation
+n_q = np.array([5, 4, 3, 2, 1]) # number of Qubits - fixed in this implementation
 dim = 2**n_q # dimension of Hilbert space
 p = [create_pauli_basis(n_qi) for n_qi in n_q] # create Pauli basis
 M = [1, 4, 16, 64, 256, 1024] # number of measurements
@@ -32,7 +32,6 @@ for ind_d in range(len(dim)):
 
 ########################################################
 #ESTIMATION
-
 def function(ind_r, n_m, ind_d, meas):
     start = time.time()
     rho = r[ind_d][ind_r]
@@ -54,7 +53,7 @@ def function(ind_r, n_m, ind_d, meas):
 out_ar = np.zeros((len(dim), 4, 4, len(M), rep_O, L)) # output array
 
 for ind_d in range(len(dim)):
-    np.save(str(ind_d), np.zeros(1))
+    np.save(str(ind_d), np.zeros(1)) # to track progress (no progress)
     for idm, n_m in enumerate(M):
         for idr in range(rep_O):
             out = []

@@ -19,7 +19,6 @@ def POVM_randbasis(M, p, dim):
     o = np.zeros((M, dim, dim**2))
     for m in range(M):
         u = qt.rand_unitary(dim, distribution= 'haar').full()
-        print(u)
         o[m] = np.array([ket_to_bvector(u[i], p, dim) for i in range(dim)])
     return o
 
