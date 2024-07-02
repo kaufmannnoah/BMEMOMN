@@ -1,0 +1,14 @@
+n_q = np.array([4, 3, 2, 1]) # number of Qubits - fixed in this implementation
+dim = 2**n_q # dimension of Hilbert space
+p = [create_pauli_basis(n_qi) for n_qi in n_q] # create Pauli basis
+M = [1, 10, 100] # number of measurements
+L = 1000 # number of sampling points
+
+#AVERAGES FOR BAYES RISK ESTIMATION
+R = L # number of different rho_0 in ensemble
+rep_O = 100 # number of repetition per measurements
+
+out += [Parallel(n_jobs=cores)(delayed(function)(ind_r, n_m, ind_d, 'pauli') for ind_r in np.arange(L))]
+out += [Parallel(n_jobs=cores)(delayed(function)(ind_r, n_m, ind_d, 'rand') for ind_r in np.arange(L))]
+out += [Parallel(n_jobs=cores)(delayed(function)(ind_r, n_m, ind_d, 'rand2') for ind_r in np.arange(L))]
+out += [Parallel(n_jobs=cores)(delayed(function)(ind_r, n_m, ind_d, 'randsep') for ind_r in np.arange(L))]

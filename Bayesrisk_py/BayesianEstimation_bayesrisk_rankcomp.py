@@ -6,15 +6,15 @@ from functions_estimation import *
 
 ########################################################
 #PARAMETERS ESTIMATION
-n_q = np.array([5, 4, 3, 2, 1]) # number of Qubits - fixed in this implementation
+n_q = np.array([4, 3, 2, 1]) # number of Qubits - fixed in this implementation
 dim = 2**n_q # dimension of Hilbert space
 p = [create_pauli_basis(n_qi) for n_qi in n_q] # create Pauli basis
-M = [1, 4, 16, 64, 256, 1024] # number of measurements
-L = 1000 # number of sampling points
+M = [1, 10, 100] # number of measurements
+L = 10000 # number of sampling points
 
 #AVERAGES FOR BAYES RISK ESTIMATION
 R = L # number of different rho_0 in ensemble
-rep_O = 1 # number of repetition per measurements
+rep_O = 10 # number of repetition per measurements
 
 #PARAMETERS COMPUTATION
 threshold = 1 / (L**2) # thrshold below which weights are cut off
