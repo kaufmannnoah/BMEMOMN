@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-imp_data = np.load("output_bayesrisk_rankcomp_240626.npy")
+imp_data = np.load("output_bayesrisk_dimcomp_240626.npy")
 
 # Load data 
 fid_data = np.average(imp_data[:, 0, [1, 3, 0, 2], :, :, :], axis= 4)
