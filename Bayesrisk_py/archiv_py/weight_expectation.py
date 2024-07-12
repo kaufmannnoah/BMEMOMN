@@ -28,6 +28,7 @@ for i in range(rep_O):
 w_ana = np.zeros(w0.shape)
 for i in range(L):
     w_ana[i] = 1 / (3 * L) * (3 + 4 * np.sum(rho[1:] * r[i][1:]))
+
 print(np.sum(w_ana))
 
 print(np.sum(abs(w0-w_avg)))

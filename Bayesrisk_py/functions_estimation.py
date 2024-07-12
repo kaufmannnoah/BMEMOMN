@@ -10,8 +10,30 @@ def sample_ginibre_ensemble(n, p, dim_n, dim_k=None):
     x_0 = np.zeros((n, dim_n**2))
     w_0 = np.ones(n)/n
     for i in range(n):
-        dm = qt.rand_dm(dim_n, distribution= 'ginibre', rank= dim_k)
+        dm = qt.rand_dm(dim_n, distribution= 'ginibre', rank= dim_k) # if dim_k == None (return full rank)
         x_0[i] = dm_to_bvector(dm.full(), p, dim_n) # calculate pauli representation
+    return x_0, w_0
+    
+def sample_pure_ensemble(n, p, dim_n):
+    # draw n pure states (unbiased)
+    # OUT: x_0: array of states sampled from Pure states as Pauli vectors, w_0: uniform weights
+    x_0 = np.zeros((n, dim_n**2))
+    w_0 = np.ones(n)/n
+    for i in range(n):
+        dm = qt.rand_dm(dim_n, distribution= 'pure')
+        x_0[i] = dm_to_bvector(dm.full(), p, dim_n) # calculate pauli representation
+    return x_0, w_0
+
+def sample_belldiag_ensemble(n, p):
+    # draw n states that are diagonal in the bell basis(unbiased)
+    # OUT: x_0: array of states sampled from diagonal states in the Bell basis as Pauli vectors, w_0: uniform weights
+    x_0 = np.zeros((n, 4**2))
+    w_0 = np.ones(n)/n
+    basis = [qt.ket2dm(qt.bell_state(b)).full() for b in ['00', '10', '01', '11']]
+    for i in range(n):
+        dm = qt.rand_dm(4, distribution= 'pure')
+        for b in basis:
+            x_0[i] = x_0[i] + dm_to_bvector(qt.expect(qt.Qobj(b), dm) * b, p ,4)
     return x_0, w_0
 
 def POVM_randbasis(M, p, dim):
@@ -19,7 +41,7 @@ def POVM_randbasis(M, p, dim):
     o = np.zeros((M, dim, dim**2))
     for m in range(M):
         u = qt.rand_unitary(dim, distribution= 'haar').full()
-        o[m] = np.array([ket_to_bvector(u[i], p, dim) for i in range(dim)])
+        o[m] = np.array([ket_to_bvector(u.T[i], p, dim) for i in range(dim)])
     return o
 
 def POVM_randbasis_2meas(M, p, dim):
@@ -27,7 +49,7 @@ def POVM_randbasis_2meas(M, p, dim):
     o = np.zeros((M, 2, dim**2))
     for m in range(M):
         u = qt.rand_unitary(dim, distribution= 'haar').full()
-        proj = ket_to_bvector(u[0], p, dim)
+        proj = ket_to_bvector(u.T[0], p, dim)
         remainder = dm_to_bvector(qt.qeye(dim).full()-bvector_to_dm(proj, p).full(), p, dim)
         o[m] = np.array([proj, remainder])
     return o
@@ -39,10 +61,21 @@ def POVM_randbasis_seperable(M, p, dim):
     for m in range(M):
         u_i = [qt.rand_unitary(2, distribution= 'haar') for i in range(nq)]
         u = qt.tensor(u_i).full()
-        o[m] = np.array([ket_to_bvector(u[i], p, dim) for i in range(dim)])
+        o[m] = np.array([ket_to_bvector(u.T[i], p, dim) for i in range(dim)])
     return o
 
 def POVM_paulibasis(M, p, dim):
+    # returns a complete set of orthogonal seperable states sampled from the haar measure for each qubit
+    o = np.zeros((M, dim, dim**2))
+    nq = int(np.log2(dim))
+    u_p = [qt.Qobj([[1, 0], [0, 1]]), 1/np.sqrt(2) * qt.Qobj(np.array([[1, 1], [1, -1]])), 1/np.sqrt(2) * qt.Qobj([[1, 1], [1.j, -1.j]]), ] #I, H, SH
+    for m in range(M):
+        u_i = [u_p[np.random.randint(3)] for i in range(nq)]
+        u = qt.tensor(u_i).full()
+        o[m] = np.array([ket_to_bvector(u.T[i], p, dim) for i in range(dim)])
+    return o
+
+def POVM_paulibasis_old(M, p, dim):
     # returns a complete set of orthogonal states, sampled according from the Pauli basis
     n_q = int(np.log2(dim)) #number of qubits
     o = np.zeros((M, dim, dim**2))
@@ -60,6 +93,8 @@ def prob_projectivemeas(oi, rho):
     # outcome probabilities of projective measurements specified in o, when measuring rho
     dim = np.sqrt(len(rho))
     prob = dim * np.array([np.sum(oo * rho) for oo in oi])
+    prob[np.where(abs(prob) < 10**(-12))] = 0 # get rid of numerical instabilities causing smmall negative probabilities
+    prob = prob / np.sum(prob) # renormalizing probabilities
     if abs(np.sum(prob)-1) > 0.1: print(np.sum(prob))
     return prob
                                           

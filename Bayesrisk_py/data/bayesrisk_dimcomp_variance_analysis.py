@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from pylab import *
 
 imp_data = np.load("output_bayesrisk_dimcomp_240626.npy")
 
@@ -12,8 +13,8 @@ fid_data = fid_data[[3, 2, 1, 0]]
 # Plot fidelities and duration
 fig, axs = plt.subplots(nrows=4, ncols=1, figsize=(8, 10), layout="constrained")
 
-c = ['firebrick', 'dodgerblue', 'goldenrod']
-label = ['Random', 'Random_sep', 'Pauli']
+c = ['firebrick', 'goldenrod', 'dodgerblue', ]
+label = ['random', 'random_sep', 'pauli']
 fs = 12
 
 for i in range(4):
@@ -24,9 +25,15 @@ for i in range(4):
     else: axs[i].set_ylim(-0.01, 0.31)
     axs[i].hist(a, bins= bins, rwidth= 0.9, weights= np.ones(np.shape(a))/len(a), color= c, histtype='bar', label= label)
     axs[i].text(.02,.85, "d = " + str(2**(1+i)), horizontalalignment='left', transform=axs[i].transAxes, fontsize = fs)
+    if(i == 0):
+        axs[i].text(.02,.75, "N = 100", horizontalalignment='left', transform=axs[i].transAxes, fontsize = fs)
+        axs[i].text(.02,.65, r'$|\epsilon| = 1000$', horizontalalignment='left', transform=axs[i].transAxes, fontsize = fs)
+        axs[i].text(.02,.55, "100 experiments", horizontalalignment='left', transform=axs[i].transAxes, fontsize = fs)
     axs[i].set_ylabel('P.M.F.', fontsize= fs)
 
-axs[0].legend()
+axs[0].legend(fontsize= fs)
 axs[3].set_xlabel('Infidelity', fontsize= fs)
+
+plt.savefig("240626_Bayesrisk_dimcomp_variance.png", dpi= 300)
 
 plt.show()

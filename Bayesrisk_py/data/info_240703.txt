@@ -1,0 +1,15 @@
+#PARAMETERS ESTIMATION
+n_q = 2 # number of Qubits - fixed in this implementation
+dim = 2**n_q # dimension of Hilbert space
+p = create_pauli_basis(n_q) # create Pauli basis
+M = [1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024] # number of measurements
+L = 10000 # number of sampling points
+
+#AVERAGES FOR BAYES RISK ESTIMATION
+R = L # number of different rho_0 in ensemble
+rep_O = 10 # number of repetition per measurements
+
+if meas == 'pauli': O = POVM_paulibasis(n_m, p, dim) # create M POVMs
+if meas == 'rand': O = POVM_randbasis(n_m, p, dim) # create M POVMs
+if meas == 'rand2': O = POVM_randbasis_2meas(n_m, p, dim) # create M POVMs
+if meas == 'randsep': O = POVM_randbasis_seperable(n_m, p, dim) # create M POVMs
