@@ -23,7 +23,7 @@ O = POVM_randbasis_seperable(M, p, dim)
 #ESTIMATION
 x = experiment(O, rho)
 n_active0 = np.arange(L)
-w, dt = bayes_update(r, w0, x, O, n_active0, threshold)
+w = bayes_update(r, w0, x, O, n_active0, threshold)
 rho_est = pointestimate(r, w)
 
 ########################################################
@@ -36,4 +36,3 @@ print(np.sqrt(np.sum(rho_est[1:]**2)))
 print(fid)
 print(n_ess)
 print(w_max)
-print(dt)

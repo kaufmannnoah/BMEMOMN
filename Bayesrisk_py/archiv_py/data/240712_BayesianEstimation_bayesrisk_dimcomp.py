@@ -1,5 +1,6 @@
 import numpy as np
 from joblib import Parallel, delayed
+import time
 
 from functions_paulibasis import *
 from functions_estimation import *
@@ -41,11 +42,11 @@ def function(n_m, ind_d, meas):
 
     if meas == 'pauli': O = POVM_paulibasis(n_m, p[ind_d], dim[ind_d])
     if meas == 'rand': O = POVM_randbasis(n_m, p[ind_d], dim[ind_d])
-    if meas == 'rand2': O = POVM_randbasis_2meas(n_m, p[ind_d], dim[ind_d])
+    if meas == 'rand2': O = POVM_randbasis_2outcome(n_m, p[ind_d], dim[ind_d])
     if meas == 'randsep': O = POVM_randbasis_seperable(n_m, p[ind_d], dim[ind_d])
 
     x = experiment(O, rho)
-    w, _ = bayes_update(r[ind_d], w0[ind_d], x, O, n_active0, threshold)
+    w = bayes_update(r[ind_d], w0[ind_d], x, O, n_active0, threshold)
     rho_est = pointestimate(r[ind_d], w)
 
     duration = np.round(time.time() - start, decimals= 3)
@@ -61,9 +62,9 @@ for ind_d in range(len(dim)):
         out = []
         # Run parallelized estimaiton of bayes risk
         out += [Parallel(n_jobs=cores)(delayed(function)(n_m, ind_d, 'rand') for i in np.arange(n_sample))]
-        out += [Parallel(n_jobs=cores)(delayed(function)(n_m, ind_d, 'rand2') for i in np.arange(n_sample))]
-        out += [Parallel(n_jobs=cores)(delayed(function)(n_m, ind_d, 'pauli') for i in np.arange(n_sample))]
         out += [Parallel(n_jobs=cores)(delayed(function)(n_m, ind_d, 'randsep') for i in np.arange(n_sample))]
+        out += [Parallel(n_jobs=cores)(delayed(function)(n_m, ind_d, 'pauli') for i in np.arange(n_sample))]
+        out += [Parallel(n_jobs=cores)(delayed(function)(n_m, ind_d, 'rand_2') for i in np.arange(n_sample))]
 
         # Save output
         for ido, oi in enumerate(out):

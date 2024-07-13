@@ -1,8 +1,16 @@
 import numpy as np
 import qutip as qt
-import itertools
-import time
+
 from functions_paulibasis import *
+
+########################################################
+#ENSEMBLES
+
+def create_ensemble(n, p, dim_n= 2, dim_k= None, type='ginibre'):
+    match type:
+        case 'ginibre': return sample_ginibre_ensemble(n, p, dim_n, dim_k)
+        case 'pure': return sample_pure_ensemble(n, p, dim_n)
+        case 'bell': return sample_belldiag_ensemble(n, p)
 
 def sample_ginibre_ensemble(n, p, dim_n, dim_k=None):
     # draw n states from the ginibre distribution (unbiased)
@@ -31,10 +39,21 @@ def sample_belldiag_ensemble(n, p):
     w_0 = np.ones(n)/n
     basis = [qt.ket2dm(qt.bell_state(b)).full() for b in ['00', '10', '01', '11']]
     for i in range(n):
-        dm = qt.rand_dm(4, distribution= 'pure')
+        dm = qt.rand_dm(4, distribution= 'ginibre')
         for b in basis:
             x_0[i] = x_0[i] + dm_to_bvector(qt.expect(qt.Qobj(b), dm) * b, p ,4)
     return x_0, w_0
+
+########################################################
+#MEASUREMENT BASIS
+
+def create_POVM(M, p, dim, type='rand'):
+    match type:
+        case 'rand': return POVM_randbasis(M, p, dim)
+        case 'rand_bipartite': return POVM_randbasis_bipartite(M, p, dim)
+        case 'rand_separable': return POVM_randbasis_separable(M, p, dim)
+        case 'rand_2outcome': return POVM_randbasis_2outcome(M, p, dim)
+        case 'pauli': return POVM_paulibasis(M, p, dim)
 
 def POVM_randbasis(M, p, dim):
     # returns a complete set of orthogonal states, sampled according to the haar measure
@@ -44,18 +63,21 @@ def POVM_randbasis(M, p, dim):
         o[m] = np.array([ket_to_bvector(u.T[i], p, dim) for i in range(dim)])
     return o
 
-def POVM_randbasis_2meas(M, p, dim):
-    # returns a POVM with two operators (rank=1 and rank=dim-1)
-    o = np.zeros((M, 2, dim**2))
-    for m in range(M):
-        u = qt.rand_unitary(dim, distribution= 'haar').full()
-        proj = ket_to_bvector(u.T[0], p, dim)
-        remainder = dm_to_bvector(qt.qeye(dim).full()-bvector_to_dm(proj, p).full(), p, dim)
-        o[m] = np.array([proj, remainder])
-    return o
+def POVM_randbasis_bipartite(M, p, dim):
+    # returns a complete set of orthogonal bipartite states sampled from the haar measure, the systems are split as equal as possible
+    o = np.zeros((M, dim, dim**2))
+    nq = int(np.log2(dim))
+    if nq == 1: return POVM_randbasis(M, p, dim)
+    else:
+        partition = [np.floor(nq / 2), np.ceil(nq / 2)]
+        for m in range(M):
+            u_i = [qt.rand_unitary(2**int(i), distribution= 'haar') for i in partition]
+            u = qt.tensor(u_i).full()
+            o[m] = np.array([ket_to_bvector(u.T[i], p, dim) for i in range(dim)])
+        return o
 
-def POVM_randbasis_seperable(M, p, dim):
-    # returns a complete set of orthogonal seperable states sampled from the haar measure for each qubit
+def POVM_randbasis_separable(M, p, dim):
+    # returns a complete set of orthogonal separable states sampled from the haar measure for each qubit
     o = np.zeros((M, dim, dim**2))
     nq = int(np.log2(dim))
     for m in range(M):
@@ -65,7 +87,7 @@ def POVM_randbasis_seperable(M, p, dim):
     return o
 
 def POVM_paulibasis(M, p, dim):
-    # returns a complete set of orthogonal seperable states sampled from the haar measure for each qubit
+    # returns a complete set of orthogonal separable states sampled from the haar measure for each qubit
     o = np.zeros((M, dim, dim**2))
     nq = int(np.log2(dim))
     u_p = [qt.Qobj([[1, 0], [0, 1]]), 1/np.sqrt(2) * qt.Qobj(np.array([[1, 1], [1, -1]])), 1/np.sqrt(2) * qt.Qobj([[1, 1], [1.j, -1.j]]), ] #I, H, SH
@@ -75,19 +97,14 @@ def POVM_paulibasis(M, p, dim):
         o[m] = np.array([ket_to_bvector(u.T[i], p, dim) for i in range(dim)])
     return o
 
-def POVM_paulibasis_old(M, p, dim):
-    # returns a complete set of orthogonal states, sampled according from the Pauli basis
-    n_q = int(np.log2(dim)) #number of qubits
-    o = np.zeros((M, dim, dim**2))
-    b = np.random.randint(1, 4, size= (M, n_q)) # random Paulibasis (1=x, 2=y, 3=z)
-    ind = np.array([4**i for i in range(n_q)][::-1]) # indices for Paulivector
-    signs = np.array([list(i) for i in itertools.product([-1, 1], repeat= n_q)]) # (1 + sign_0 * P_0) x (1 + sign_1 * P_1) x ...
-    comb = np.array([list(i) for i in itertools.product([0, 1], repeat= n_q)]) # create all combinations in the expression above
-    for m in range(M):
-        for ids, s in enumerate(signs):
-            for c in comb:
-                o[m][ids][np.sum(ind*c*b[m])] = (-1)**(len(np.where(c*s==-1)[0])%2)
-    return o / dim
+def POVM_randbasis_2outcome(M, p, dim):
+    # teduces a random measurement with dim outcomes to 2 outcomes by averaging over the first dim/2 measurements and the last dim/2 meas
+    temp = POVM_randbasis(M, p, dim)
+    o = 2/dim * np.array([np.sum(temp[:, :int(dim / 2)], axis= 1), np.sum(temp[:, int(dim / 2):], axis= 1)])
+    return o
+
+########################################################
+#ESTIMATION
 
 def prob_projectivemeas(oi, rho):
     # outcome probabilities of projective measurements specified in o, when measuring rho
@@ -113,7 +130,6 @@ def likelihood(r, xi, oi):
 
 def bayes_update(r, w, x, o, n_active, threshold):
     # update weights according to likelihood and normalize    
-    start = time.time()
     w_temp = w
     for i in range(len(x)):
         w_new = np.zeros(len(w_temp)) # needed such that weights below the threshold are 0
@@ -121,8 +137,7 @@ def bayes_update(r, w, x, o, n_active, threshold):
         w_new[n_active] = np.divide(w_new[n_active], np.sum(w_new[n_active]))
         w_temp = w_new
         n_active = n_active[np.where(w_new[n_active] > threshold)]
-        end = time.time()
-    return w_new, end-start
+    return w_new
                                   
 def pointestimate(x, w):
     # return point estimate of rho

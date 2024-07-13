@@ -38,7 +38,7 @@ def function(n_m, meas):
     if meas == 'randsep': O = POVM_randbasis_seperable(n_m, p, dim) # create M POVMs
 
     x = experiment(O, rho)
-    w, _ = bayes_update(r, w0, x, O, n_active0, threshold)
+    w = bayes_update(r, w0, x, O, n_active0, threshold)
     rho_est = pointestimate(r, w)
 
     duration = np.round(time.time() - start, decimals= 3)
@@ -55,9 +55,10 @@ for idm, n_m in enumerate(M):
     out = []
     # Run parallelized estimaiton of bayes risk
     out += [Parallel(n_jobs=cores)(delayed(function)(n_m, 'rand') for i in np.arange(n_sample))]
-    #out += [Parallel(n_jobs=cores)(delayed(function)(n_m, 'rand2') for i in np.arange(n_sample))]
-    #out += [Parallel(n_jobs=cores)(delayed(function)(n_m, 'pauli') for i in np.arange(n_sample))]
-    #out += [Parallel(n_jobs=cores)(delayed(function)(n_m, 'randsep') for i in np.arange(n_sample))]
+    out += [Parallel(n_jobs=cores)(delayed(function)(n_m, 'randsep') for i in np.arange(n_sample))]
+    out += [Parallel(n_jobs=cores)(delayed(function)(n_m, 'pauli') for i in np.arange(n_sample))]
+    out += [Parallel(n_jobs=cores)(delayed(function)(n_m, 'rand2') for i in np.arange(n_sample))]
+
 
     # Save output
     for ido, oi in enumerate(out):
