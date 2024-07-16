@@ -9,21 +9,21 @@ from functions_estimation import *
 #PARAMETERS
 
 #SYSTEM
-n_q = np.array([2, 4, 6]) # number of Qubits - fixed in this implementation
+n_q = np.array([2]) # number of Qubits - fixed in this implementation
 dim = 2**n_q # dimension of Hilbert space
 p = [create_pauli_basis(n_qi) for n_qi in n_q] # create Pauli basis
 
 #ENSEMBLE
-L_b = ['ginibre', 'pure']
+L_b = ['ginibre']
 L = 10000 # number of sampling points
 rho_in_E = True # Flag whether state to estimate is part of ensemble
 
 #AVERAGES FOR BAYES RISK ESTIMATION
-n_sample = 1000
+n_sample = 4000
 
 #MEASUREMENTS
-M_b = ['rand', 'rand_bipartite', 'rand_separable', 'rand_2outcome', 'pauli']
-M = [1, 4, 16, 64, 256, 1028] # number of measurements
+M_b = ['rand', 'rand_bipartite', 'pauli', 'MUB4']
+M = [1, 4, 16, 64, 256, 1024, 2048] # number of measurements
 
 #METRIC
 out_m = ['fidelity', 'runtime', 'w_max', 'ESS'] #fixed
@@ -75,4 +75,4 @@ for in_lb, lb_i in enumerate(L_b):
             for in_m, m_i in enumerate(M):
                 out[:, in_lb, in_d, in_mb, in_m, :] = np.array(Parallel(n_jobs=cores)(delayed(func)(d_i, p[in_d], mb_i, m_i, r, w0, rho_0) for k in range(n_sample))).T
   
-np.save("out", out)
+np.save("240716_out_ginibre", out)

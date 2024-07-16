@@ -10,7 +10,7 @@ def create_ensemble(n, p, dim_n= 2, dim_k= None, type='ginibre'):
     match type:
         case 'ginibre': return sample_ginibre_ensemble(n, p, dim_n, dim_k)
         case 'pure': return sample_pure_ensemble(n, p, dim_n)
-        case 'bell': return sample_belldiag_ensemble(n, p)
+        case 'BDS': return sample_belldiag_ensemble(n, p)
 
 def sample_ginibre_ensemble(n, p, dim_n, dim_k=None):
     # draw n states from the ginibre distribution (unbiased)
@@ -67,6 +67,7 @@ def create_POVM(M, p, dim, type='rand'):
         case 'rand_separable': return POVM_randbasis_separable(M, p, dim)
         case 'rand_2outcome': return POVM_randbasis_2outcome(M, p, dim)
         case 'pauli': return POVM_paulibasis(M, p, dim)
+        case 'MUB4': return POVM_MUB4(M, p)
 
 def POVM_randbasis(M, p, dim):
     # returns a complete set of orthogonal states, sampled according to the haar measure
@@ -113,7 +114,22 @@ def POVM_paulibasis(M, p, dim):
 def POVM_randbasis_2outcome(M, p, dim):
     # teduces a random measurement with dim outcomes to 2 outcomes by averaging over the first dim/2 measurements and the last dim/2 meas
     temp = POVM_randbasis(M, p, dim)
-    o = 2/dim * np.array([np.sum(temp[:, :int(dim / 2)], axis= 1), np.sum(temp[:, int(dim / 2):], axis= 1)])
+    o = 2 / dim * np.array([np.sum(temp[:, :int(dim / 2)], axis= 1), np.sum(temp[:, int(dim / 2):], axis= 1)])
+    return o
+
+def POVM_MUB4(M, p, dim= 4):
+    # teduces a random measurement with dim outcomes to 2 outcomes by averaging over the first dim/2 measurements and the last dim/2 meas
+    o = np.zeros((M, 4, 16))
+    #define 5 mutually unbiased bases
+    M0 = np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
+    M1 = 1/2 * np.array([[1, 1, 1, 1], [1, 1, -1, -1], [1, -1, -1, 1], [1, -1, 1, -1]])
+    M2 = 1/2 * np.array([[1, -1, -1.j, -1.j], [1, -1, 1.j, 1.j], [1, 1, 1.j, -1.j], [1, 1, -1.j, 1.j]])
+    M3 = 1/2 * np.array([[1, -1.j, -1.j, -1], [1, -1.j, 1.j, 1], [1, 1.j, 1.j, -1], [1, 1.j, -1.j, 1]])
+    M4 = 1/2 * np.array([[1, -1.j, -1, -1.j], [1, -1.j, 1, 1.j], [1, 1.j, -1, 1.j], [1, 1.j, 1, -1.j]])
+    MUB_4 = np.array([M0, M1, M2, M3, M4])
+    for i in range(M):
+        ind_b = np.random.randint(5)
+        o[i] = np.array([ket_to_bvector(j, p, 4) for j in MUB_4[ind_b]])
     return o
 
 ########################################################
