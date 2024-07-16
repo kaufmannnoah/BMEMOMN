@@ -43,6 +43,7 @@ n_active0 = np.arange(L)
 
 ########################################################
 #ESTIMATION
+
 def func(dim, p, m_basis, n_m, r, w0, rho_0):    
     start = time.time()
 
@@ -52,8 +53,8 @@ def func(dim, p, m_basis, n_m, r, w0, rho_0):
     w = bayes_update(r, w0, x, O, n_active0, threshold)
     
     #Output
-    rho_est = pointestimate(r, w)
     duration = np.round(time.time() - start, decimals= 3)
+    rho_est = pointestimate(r, w)
     fid = np.round(fidelity(rho_0, rho_est, p), decimals= 7)
     n_ess = np.round(1 / np.sum(w**2), decimals= 4)
     w_max = np.round(np.max(w), decimals= 4)
@@ -74,7 +75,7 @@ for in_lb, lb_i in enumerate(L_b):
         
         #Measurement Basis
         for in_mb, mb_i in enumerate(M_b):
-            print(mb_i)
+            
             #Number of Measurements
             for in_m, m_i in enumerate(M):
                 out[:, in_lb, in_d, in_mb, in_m, :] = np.array(Parallel(n_jobs=cores)(delayed(func)(d_i, p[in_d], mb_i, m_i, r, w0, rho_0) for k in range(n_sample))).T

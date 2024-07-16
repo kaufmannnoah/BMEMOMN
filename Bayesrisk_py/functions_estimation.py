@@ -32,8 +32,21 @@ def sample_pure_ensemble(n, p, dim_n):
         x_0[i] = dm_to_bvector(dm.full(), p, dim_n) # calculate pauli representation
     return x_0, w_0
 
-def sample_belldiag_ensemble(n, p):
-    # draw n states that are diagonal in the bell basis(unbiased)
+def sample_belldiag_ensemble(n, p= None):
+    # draw n states that are diagonal in the bell basis (sample uniformly over a tetrahedron)
+    # OUT: x_0: array of states sampled from diagonal states in the Bell basis as Pauli vectors, w_0: uniform weights
+    x_0 = np.zeros((n, 4**2))
+    x_0[:, 0] = 1 / 4
+    w_0 = np.ones(n)/n
+    for i in range(n):
+        x = np.random.random(3) * 2 - 1
+        while(point_in_tetrahedron(x) == 0):
+            x = np.random.random(3) * 2 - 1
+        x_0[i, [5, 10, 15]] = x / 4 # 5, 10, 15 correspond to XX, YY and ZZ
+    return x_0, w_0
+
+def sample_belldiag_ensemble_2(n, p):
+    # draw n states that are diagonal in the bell basis (project random ginibre state onto BDS)
     # OUT: x_0: array of states sampled from diagonal states in the Bell basis as Pauli vectors, w_0: uniform weights
     x_0 = np.zeros((n, 4**2))
     w_0 = np.ones(n)/n
