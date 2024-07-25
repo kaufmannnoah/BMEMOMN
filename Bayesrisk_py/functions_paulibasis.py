@@ -23,6 +23,24 @@ def bvector_to_dm(v, basis):
     # convert vector in pauli basis to density matrix (if basis = pauli basis)
     return qt.Qobj(np.sum(np.array([v[i] * basis[i] for i in range(len(v))]), axis= 0))
 
+def BDS_to_bvector(r):
+    # convert bell diagonal to vector in pauli basis
+    rho = np.zeros(16)
+    a = 2 * (r[0] + r[2]) - 1
+    b = 2 * (r[1] + r[2]) - 1
+    c = 2 * (r[0] + r[1]) - 1
+    rho[[0, 5, 10, 15]] = np.array([1, a, b, c]) / 4
+    return rho
+
+def bvector_to_BDS(r):
+    a = 1/4 + r[5] - r[10] + r[15]
+    b = 1/4 - r[5] + r[10] + r[15]
+    c = 1/4 + r[5] + r[10] - r[15]
+    d = 1/4 - r[5] - r[10] - r[15]
+    return(a, b, c, d)
+
+def ket_to_bellbasis(r):
+    return np.array([np.sqrt(4 * np.sum(r * BDS_to_bvector(i))) for i in np.identity(4)])
 
 #check whether point p is in Tetrahedron with vertices (v1, v2, v3, v4)
 def sameside(v1, v2, v3, v4, p):

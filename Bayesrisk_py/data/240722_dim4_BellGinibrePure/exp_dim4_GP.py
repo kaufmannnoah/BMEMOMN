@@ -14,7 +14,7 @@ dim = 2**n_q # dimension of Hilbert space
 p = [create_pauli_basis(n_qi) for n_qi in n_q] # create Pauli basis
 
 #ENSEMBLE
-L_b = ['ginibre', 'pure', 'BDS'] # type of ensemble
+L_b = ['ginibre', 'pure'] # type of ensemble
 L = 10000 # number of sampling points
 rho_in_E = True # Flag whethecdr state to estimate is part of ensemble
 
@@ -49,10 +49,10 @@ def func(dim, p, m_basis, n_m, r, w0, rho_0, rng= None):
     O = create_POVM(n_m, p, dim, rng, type= m_basis)
     x = experiment(O, rho_0, rng)
     w = bayes_update(r, w0, x, O, n_active0, threshold)
-    rho_est = pointestimate(r, w)
+    duration = np.round(time.time() - start, decimals= 3)
 
     #Output
-    duration = np.round(time.time() - start, decimals= 3)
+    rho_est = pointestimate(r, w)
     fid = np.round(fidelity(rho_0, rho_est, p), decimals= 7)
     n_ess = np.round(1 / np.sum(w**2), decimals= 4)
     w_max = np.round(np.max(w), decimals= 4)

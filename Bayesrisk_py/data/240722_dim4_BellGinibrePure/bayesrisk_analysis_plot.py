@@ -6,8 +6,8 @@ title = ['BDS', 'ginibre', 'pure']
 name = "out_dim4_BGP.npy"
 meas = ['rand', 'MUB4', 'rand_bipartite', 'pauli']
 dim = [4]
-n_meas = np.array([1, 2, 4, 8, 16, 32, 64, 256, 512, 1024, 2048])
-n_sample = 1000
+n_meas = np.array([1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048])
+n_sample = 4000
 
 c_meas = ['firebrick', 'goldenrod', 'dodgerblue', 'olive']
 m_s = 8 #markersize
@@ -19,7 +19,7 @@ ess_data = np.load(name)[3, :, 0]
 wma_data = np.load(name)[2, :, 0]
 dur_data = np.load(name)[1, :, 0]
 
-fig, axs = plt.subplots(nrows=len(title), ncols=len(dim), figsize=(5 * len(dim), 5 * len(title)), layout="constrained")
+fig, axs = plt.subplots(nrows=len(title), ncols=len(dim), figsize=(6 * len(dim), 3 * len(title)), layout="constrained")
 
 coef = np.zeros((len(title), len(meas), 2))
 coef_std = np.zeros((len(title), len(meas), 2))
@@ -49,10 +49,8 @@ for j in range(len(title)):
     axs[j].grid()
     axs[j].set_title(title[j])
     axs[j].legend(fontsize= 10, loc='lower left')
-axs[1].set_xlabel(r'number of measurements $M$', fontsize=f_s)
-axs[1].set_xlabel(r'number of measurements $M$', fontsize=f_s)
+axs[2].set_xlabel(r'number of measurements $M$', fontsize=f_s)
 
-plt.savefig("240717_bayesrisk.png", dpi= 300)
-print(fid_data[2, :, :, 0])
+plt.savefig("240722_bayesrisk.png", dpi= 300)
 
 plt.show()

@@ -23,7 +23,7 @@ n_sample = 4000
 
 #MEASUREMENTS
 M_b = ['rand', 'rand_bipartite', 'rand_separable', 'pauli'] # type of measurement
-M = [1, 2, 4, 8, 16, 32, 64, 256, 512, 1024]  # number of measurements
+M = [1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024]  # number of measurements
 
 #METRIC
 out_m = ['fidelity', 'runtime', 'w_max', 'ESS'] # fixed!

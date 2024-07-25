@@ -14,9 +14,9 @@ dim = 2**n_q # dimension of Hilbert space
 p = [create_pauli_basis(n_qi) for n_qi in n_q] # create Pauli basis
 
 #ENSEMBLE
-L_b = ['ginibre', 'pure', 'BDS'] # type of ensemble
+L_b = ['BDS'] # type of ensemble
 L = 10000 # number of sampling points
-rho_in_E = True # Flag whethecdr state to estimate is part of ensemble
+rho_in_E = True # Flag whether the state to estimate is part of ensemble
 
 #AVERAGES FOR BAYES RISK ESTIMATION
 n_sample = 4000
@@ -26,7 +26,7 @@ M_b = ['rand', 'MUB4', 'rand_bipartite', 'pauli'] # type of measurement
 M = [1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048] # number of measurements
 
 #METRIC
-out_m = ['fidelity', 'runtime', 'w_max', 'ESS'] # fixed!
+out_m = ['fidelity', 'runtime', 'w_max', 'ESS', 'fid_MLE'] # fixed!
 
 #OUTCOME
 out = np.zeros((len(out_m), len(L_b), len(dim), len(M_b), len(M), n_sample))
@@ -49,15 +49,19 @@ def func(dim, p, m_basis, n_m, r, w0, rho_0, rng= None):
     O = create_POVM(n_m, p, dim, rng, type= m_basis)
     x = experiment(O, rho_0, rng)
     w = bayes_update(r, w0, x, O, n_active0, threshold)
-    rho_est = pointestimate(r, w)
+    duration = np.round(time.time() - start, decimals= 3)
+
+    #MLE
+    rho_mle = MLE_BDS(x, O)
 
     #Output
-    duration = np.round(time.time() - start, decimals= 3)
+    rho_est = pointestimate(r, w)
     fid = np.round(fidelity(rho_0, rho_est, p), decimals= 7)
     n_ess = np.round(1 / np.sum(w**2), decimals= 4)
     w_max = np.round(np.max(w), decimals= 4)
+    fid_mle = np.round(fidelity(rho_0, rho_mle, p), decimals= 7)
 
-    return fid, duration, w_max, n_ess
+    return fid, duration, w_max, n_ess, fid_mle
 
 ########################################################
 #MAIN
