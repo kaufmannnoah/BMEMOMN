@@ -77,7 +77,9 @@ for in_lb, lb_i in enumerate(L_b):
             #Number of Measurements
             for in_m, m_i in enumerate(M):
                 #Spawn Pseudo Random Number Generators for Paralelization
-                child_rngs = rng.spawn(n_sample)
-                out[:, in_lb, in_d, in_mb, in_m, :] = np.array(Parallel(n_jobs=cores)(delayed(func)(d_i, p[in_d], mb_i, m_i, r, w0, rho_0[k], child_rngs[k]) for k in range(n_sample))).T
-               
+                #child_rngs = rng.spawn(n_sample)
+                #out[:, in_lb, in_d, in_mb, in_m, :] = np.array(Parallel(n_jobs=cores)(delayed(func)(d_i, p[in_d], mb_i, m_i, r, w0, rho_0[k], child_rngs[k]) for k in range(n_sample))).T
+                for k in range(n_sample):
+                    out[:, in_lb, in_d, in_mb, in_m, k] = np.array(func(d_i, p[in_d], mb_i, m_i, r, w0, rho_0[k], rng))
+                    
 np.save("out_dim4_BGP", out)

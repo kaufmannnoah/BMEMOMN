@@ -1,6 +1,5 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import scipy as sp
 
 title = ['BDS', 'BDS_dirichlet']
 name = "out_dim4_dirichlet.npy"

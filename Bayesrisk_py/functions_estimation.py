@@ -126,6 +126,7 @@ def POVM_paulibasis_bds(M, p, dim, rng= None, ret_basis= False):
     nq = int(np.log2(dim))
     u_p = [qt.Qobj([[1, 0], [0, 1]]), 1/np.sqrt(2) * qt.Qobj(np.array([[1, 1], [1, -1]])), 1/np.sqrt(2) * qt.Qobj([[1, 1], [1.j, -1.j]]), ] #I, H, SH
     temp = rng.integers(3, size= M)
+    #temp = np.array([0, 1, 2] * int(M/3))
     for m in range(M):
         u_i = [u_p[temp[m]] for i in range(nq)]
         u = qt.tensor(u_i).full()
@@ -139,6 +140,7 @@ def POVM_bell(M, ret_basis):
     for idi, i in enumerate(np.identity(4)):
         o[:, idi, :] = BDS_to_bvector(i)
     if ret_basis: return o, 0
+    else: return o
 
 def POVM_MUB4(M, p, rng= None, ret_basis= False):
     # teduces a random measurement with dim outcomes to 2 outcomes by averaging over the first dim/2 measurements and the last dim/2 meas
@@ -194,6 +196,14 @@ def likelihood(r, xi, oi):
 def fidelity(a, b, p):
     # compute fidelity from density matrices in Pauli representation
     return qt.metrics.fidelity(bvector_to_dm(a, p), bvector_to_dm(b, p))**2
+
+def fidelity(a, b, p):
+    # compute fidelity from density matrices in Pauli representation
+    return qt.metrics.fidelity(bvector_to_dm(a, p), bvector_to_dm(b, p))**2
+
+def HS_dist(a, b, p):
+    # compute fidelity from density matrices in Pauli representation
+    return qt.metrics.hilbert_dist(bvector_to_dm(a, p), bvector_to_dm(b, p))
 
 ########################################################
 # BAYESIAN ESTIMATION
