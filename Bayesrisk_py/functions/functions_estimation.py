@@ -3,7 +3,7 @@ import qutip as qt
 import scipy as sp
 import qiskit.quantum_info as qi
 
-from functions_paulibasis import *
+from functions.functions_paulibasis import *
 
 ########################################################
 #ENSEMBLES
@@ -65,37 +65,39 @@ def sample_belldiag_ensemble_dirichlet(n, rng= None):
 
 def create_POVM(M, p, dim, rng= None, type='rand', ret_basis= False):
     match type:
-        case 'rand': return POVM_randbasis(M, p, dim, rng)
-        case 'rand_bipartite': return POVM_randbasis_bipartite(M, p, dim, rng)
-        case 'rand_separable': return POVM_randbasis_separable(M, p, dim, rng)
+        case 'rand': return POVM_randbasis(M, p, dim, rng, ret_basis)
+        case 'rand_bipartite': return POVM_randbasis_bipartite(M, p, dim, rng, ret_basis)
+        case 'rand_separable': return POVM_randbasis_separable(M, p, dim, rng, ret_basis)
         case 'pauli': return POVM_paulibasis(M, p, dim, rng, ret_basis)
         case 'MUB4': return POVM_MUB4(M, p, rng, ret_basis)
-        case 'clifford': return POVM_clifford(M, p, dim, rng)
+        case 'clifford': return POVM_clifford(M, p, dim, rng, ret_basis)
         case 'pauli_BDS': return POVM_paulibasis_bds(M, p, dim, rng, ret_basis)
         case 'bell': return POVM_bell(M, ret_basis)
 
-def POVM_randbasis(M, p, dim, rng= None):
+def POVM_randbasis(M, p, dim, rng= None, ret_basis= False):
     # returns a complete set of orthogonal states, sampled according to the haar measure
     o = np.zeros((M, dim, dim**2))
     for m in range(M):
         u = qt.rand_unitary(dim, distribution= 'haar', seed= rng).full()
         o[m] = np.array([ket_to_bvector(u.T[i], p, dim) for i in range(dim)])
-    return o
+    if ret_basis: return o, 0
+    else: return o
 
-def POVM_randbasis_bipartite(M, p, dim, rng= None):
+def POVM_randbasis_bipartite(M, p, dim, rng= None, ret_basis= False):
     # returns a complete set of orthogonal bipartite states sampled from the haar measure, the systems are split as equal as possible
     o = np.zeros((M, dim, dim**2))
     nq = int(np.log2(dim))
-    if nq == 1: return POVM_randbasis(M, p, dim, rng)
+    if nq == 1: return POVM_randbasis(M, p, dim, rng, ret_basis)
     else:
         partition = [np.floor(nq / 2), np.ceil(nq / 2)]
         for m in range(M):
             u_i = [qt.rand_unitary(2**int(i), distribution= 'haar', seed= rng) for idi, i in enumerate(partition)]
             u = qt.tensor(u_i).full()
             o[m] = np.array([ket_to_bvector(u.T[i], p, dim) for i in range(dim)])
-        return o
+        if ret_basis: return o, 0
+        else: return o
 
-def POVM_randbasis_separable(M, p, dim, rng= None):
+def POVM_randbasis_separable(M, p, dim, rng= None, ret_basis= False):
     # returns a complete set of orthogonal separable states sampled from the haar measure for each qubit
     o = np.zeros((M, dim, dim**2))
     nq = int(np.log2(dim))
@@ -103,7 +105,8 @@ def POVM_randbasis_separable(M, p, dim, rng= None):
         u_i = [qt.rand_unitary(2, distribution= 'haar', seed= rng) for i in range(nq)]
         u = qt.tensor(u_i).full()
         o[m] = np.array([ket_to_bvector(u.T[i], p, dim) for i in range(dim)])
-    return o
+    if ret_basis: return o, 0
+    else: return o
 
 def POVM_paulibasis(M, p, dim, rng= None, ret_basis= False):
     # returns a complete set of orthogonal separable eigenstates of an n-qubit Pauli operator
@@ -126,20 +129,20 @@ def POVM_paulibasis_bds(M, p, dim, rng= None, ret_basis= False):
     nq = int(np.log2(dim))
     u_p = [qt.Qobj([[1, 0], [0, 1]]), 1/np.sqrt(2) * qt.Qobj(np.array([[1, 1], [1, -1]])), 1/np.sqrt(2) * qt.Qobj([[1, 1], [1.j, -1.j]]), ] #I, H, SH
     temp = rng.integers(3, size= M)
-    #temp = np.array([0, 1, 2] * int(M/3))
+    temp = np.array([0, 1, 2] * int(M/3))
     for m in range(M):
-        u_i = [u_p[temp[m]] for i in range(nq)]
+        u_i = [u_p[temp[m]] for _ in range(nq)]
         u = qt.tensor(u_i).full()
         o[m] = np.array([ket_to_bvector(u.T[i], p, dim) for i in range(dim)])
     if ret_basis: return o, temp
     else: return o
 
-def POVM_bell(M, ret_basis):
+def POVM_bell(M, ret_basis= False):
     # returns bell state measurement
     o = np.zeros((M, 4, 16))
     for idi, i in enumerate(np.identity(4)):
         o[:, idi, :] = BDS_to_bvector(i)
-    if ret_basis: return o, 0
+    if ret_basis: return o, np.zeros(M)
     else: return o
 
 def POVM_MUB4(M, p, rng= None, ret_basis= False):
@@ -155,17 +158,17 @@ def POVM_MUB4(M, p, rng= None, ret_basis= False):
     MUB_4 = np.array([M0, M1, M2, M3, M4])
     temp = rng.integers(5, size= M)
     for i in range(M):
-        o[i] = np.array([ket_to_bvector(j, p, 4) for j in MUB_4[temp[i]]])
-        
+        o[i] = np.array([ket_to_bvector(j, p, 4) for j in MUB_4[temp[i]]])       
     if ret_basis: return o, temp
     else: return o
 
-def POVM_clifford(M, p, dim, rng= None):
+def POVM_clifford(M, p, dim, rng= None, ret_basis= False):
     o = np.zeros((M, dim, dim**2))
     for m in range(M):
         u = qi.random_clifford(int(np.log2(dim)), seed= rng).to_matrix()
         o[m] = np.array([ket_to_bvector(u.T[i], p, dim) for i in range(dim)])
-    return o
+    if ret_basis: return o, 0
+    else: return o
 
 ########################################################
 # ESTIMATION
@@ -233,6 +236,7 @@ def loglikelihood_MLE(r, x):
         a = np.sum(x_i * rho)
         if np.abs(a) < 10e-4: a = max(10e-6, a)
         LL += np.log(a)
+    LL = LL - 0.001 * np.sum(np.abs(rho))
     return(-LL)
 
 def MLE_BDS(x, o):
@@ -240,7 +244,6 @@ def MLE_BDS(x, o):
     trace_con = sp.optimize.LinearConstraint([[1, 1, 1, 1]], [1], [1])
     bnds = ((0, 1), (0, 1), (0, 1), (0, 1))
     r = sp.optimize.minimize(loglikelihood_MLE, x0= [1/3, 1/6, 1/12, 5/12], method= "SLSQP", args= (xx), bounds= bnds, constraints= [trace_con])
-    #if r.success == False: print('nonono')
     return(BDS_to_bvector(r.x))
 
 ########################################################

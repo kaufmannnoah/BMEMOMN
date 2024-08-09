@@ -14,19 +14,19 @@ dim = 2**n_q # dimension of Hilbert space
 p = [create_pauli_basis(n_qi) for n_qi in n_q] # create Pauli basis
 
 #ENSEMBLE
-L_b = ['ginibre', 'pure', 'BDS'] # type of ensemble
+L_b = ['BDS_dirichlet'] # type of ensemble
 L = 10000 # number of sampling points
-rho_in_E = True # Flag whethecdr state to estimate is part of ensemble
+rho_in_E = True # Flag whether the state to estimate is part of ensemble
 
 #AVERAGES FOR BAYES RISK ESTIMATION
-n_sample = 4000
+n_sample = 1000
 
 #MEASUREMENTS
-M_b = ['rand', 'MUB4', 'rand_bipartite', 'pauli'] # type of measurement
-M = [1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048] # number of measurements
+M_b = ['pauli_BDS'] # type of measurement
+M = [3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39, 42, 45] # number of measurements
 
 #METRIC
-out_m = ['fidelity', 'runtime', 'w_max', 'ESS'] # fixed!
+out_m = ['fidelity', 'HS', 'fid_MLE', 'HS_MLE', 'fid_recon', 'HS_recon'] # fixed!
 
 #OUTCOME
 out = np.zeros((len(out_m), len(L_b), len(dim), len(M_b), len(M), n_sample))
@@ -37,27 +37,32 @@ threshold = 1 / (L**2) # threshold below which weights are cut off
 n_active0 = np.arange(L)
 
 #RANDOM SEED
-seed = 20240722
+seed = 20240724
 rng = np.random.default_rng(seed)
 
 ########################################################
 #ESTIMATION
 
 def func(dim, p, m_basis, n_m, r, w0, rho_0, rng= None):    
-    start = time.time()
     #Estimation
-    O = create_POVM(n_m, p, dim, rng, type= m_basis)
+    O, b = create_POVM(n_m, p, dim, rng, type= m_basis, ret_basis= True)
     x = experiment(O, rho_0, rng)
     w = bayes_update(r, w0, x, O, n_active0, threshold)
-    rho_est = pointestimate(r, w)
+
+    #MLE
+    rho_mle = MLE_BDS(x, O)
+    rho_recon = recon_from_paulibell(x, b)
 
     #Output
-    duration = np.round(time.time() - start, decimals= 3)
+    rho_est = pointestimate(r, w)
     fid = np.round(fidelity(rho_0, rho_est, p), decimals= 7)
-    n_ess = np.round(1 / np.sum(w**2), decimals= 4)
-    w_max = np.round(np.max(w), decimals= 4)
+    HS = np.round(HS_dist(rho_0, rho_est, p), decimals= 7)
+    fid_mle = np.round(fidelity(rho_0, rho_mle, p), decimals= 7)
+    HS_mle = np.round(HS_dist(rho_0, rho_mle, p), decimals= 7)
+    fid_recon = np.round(fidelity(rho_0, rho_recon, p), decimals= 7)
+    HS_recon = np.round(HS_dist(rho_0, rho_recon, p), decimals= 7)
 
-    return fid, duration, w_max, n_ess
+    return fid, HS, fid_mle, HS_mle, fid_recon, HS_recon
 
 ########################################################
 #MAIN
@@ -68,18 +73,19 @@ for in_lb, lb_i in enumerate(L_b):
     #Dimensions
     for in_d, d_i in enumerate(dim):
         r, w0 = create_ensemble(L, p[in_d], d_i, rng, type= lb_i)
-        if rho_in_E: rho_0 = [r[rng.integers(L)] for i in range(n_sample)]
-        else: rho_0 = [create_ensemble(1, p[in_d], d_i, rng, type= lb_i)[0] for i in range(n_sample)]
+        if rho_in_E: rho_0 = [r[rng.integers(L)] for _ in range(n_sample)]
+        else: rho_0 = [create_ensemble(1, p[in_d], d_i, rng, type= lb_i)[0] for _ in range(n_sample)]
         
         #Measurement Basis
         for in_mb, mb_i in enumerate(M_b):
 
             #Number of Measurements
             for in_m, m_i in enumerate(M):
+                np.save(str(m_i), np.ones(1))
                 #Spawn Pseudo Random Number Generators for Paralelization
-                #child_rngs = rng.spawn(n_sample)
-                #out[:, in_lb, in_d, in_mb, in_m, :] = np.array(Parallel(n_jobs=cores)(delayed(func)(d_i, p[in_d], mb_i, m_i, r, w0, rho_0[k], child_rngs[k]) for k in range(n_sample))).T
-                for k in range(n_sample):
-                    out[:, in_lb, in_d, in_mb, in_m, k] = np.array(func(d_i, p[in_d], mb_i, m_i, r, w0, rho_0[k], rng))
-                    
-np.save("out_dim4_BGP", out)
+                child_rngs = rng.spawn(n_sample)
+                out[:, in_lb, in_d, in_mb, in_m, :] = np.array(Parallel(n_jobs=cores)(delayed(func)(d_i, p[in_d], mb_i, m_i, r, w0, rho_0[k], child_rngs[k]) for k in range(n_sample))).T
+                #for k in range(n_sample):
+                    #out[:, in_lb, in_d, in_mb, in_m, k] = np.array(func(d_i, p[in_d], mb_i, m_i, r, w0, rho_0[k], rng))
+
+np.save("MLE_HS", out)
