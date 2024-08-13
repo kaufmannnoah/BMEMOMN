@@ -37,6 +37,9 @@ for j in range(len(recon)):
         
     if j == 0: 
         axs[*pos[j]].plot(x, 3/(5*(x+4)), c= c_meas[0], ls= ":")
+        k= 2
+        axs[*pos[j]].plot(x, 3/5*(x/3 + k**2) / (x/3+2*k)**2, c= c_meas[1], ls= ":")
+
     if j == 2: 
         axs[*pos[j]].plot(x, 3/(5*x), c= c_meas[0], ls= ":")
         axs[*pos[j]].plot(x, 9/(5*x), c= c_meas[1], ls= ":")
