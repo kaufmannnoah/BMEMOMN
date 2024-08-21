@@ -7,7 +7,7 @@ name = "out.npy"
 sim = ['brisbane', 'ideal']
 prep = ['exact', 'mixture']
 meas = ['bell', 'pauli_BDS']
-labels = [["noisy_bell", "noisy_pauli"], ["ideal_bell", "ideal_pauli"]]
+labels = [["Brisbane_bell", "Brisbane_pauli"], ["ideal_bell", "ideal_pauli"]]
 c_meas = [['firebrick', 'goldenrod'], ['dodgerblue', 'olive']]
 lims = [[-0.01, 0.26], [-0.02, 0.52], [-0.03, 0.78]]
 yticks = np.array([0, 0.05, 0.1, 0.15, 0.2, 0.25])
@@ -26,7 +26,7 @@ f_s = 12 #fontsize
 
 HS = np.load(name) #[estimator][simulation][preparation][meas][nmeas][sample]
 
-fig, axs = plt.subplots(nrows=2, ncols=3, figsize=(15, 8), layout="constrained")
+fig, axs = plt.subplots(nrows=2, ncols=3, figsize=(12, 5), layout="constrained")
 
 x = np.linspace(3, 45, 1000)
 
@@ -48,7 +48,7 @@ for j in range(len(recon)):
             elif j == 1: axs[l, j].set_ylim(-0.02, 0.42)
             else: axs[l, j].set_ylim(-0.04, 0.84)
             if l == 1:
-                axs[l, i].set_xlabel(r'number of measurements $M$', fontsize=f_s)
+                axs[l, i].set_xlabel(r'number of measurements $N$', fontsize=f_s)
 
 plt.savefig("BDS_sim_meas", dpi= 300)
 plt.show()

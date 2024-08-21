@@ -26,7 +26,7 @@ f_s = 12 #fontsize
 
 HS = np.load(name) #[estimator][simulation][preparation][meas][nmeas][sample]
 
-fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(15, 8), layout="constrained")
+fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(12, 5), layout="constrained")
 
 x = np.linspace(3, 45, 1000)
 
@@ -46,7 +46,7 @@ for j in range(len(recon)):
                 axs[k, i].set_ylabel(r'average risk (HS)', fontsize=f_s)
             else: axs[k, i].set_ylim(-0.03, 0.78)
             if k == 1:
-                axs[k, i].set_xlabel(r'number of measurements $M$', fontsize=f_s)
+                axs[k, i].set_xlabel(r'number of measurements $N$', fontsize=f_s)
 
 plt.savefig("BDS_recon", dpi= 300)
 plt.show()

@@ -3,14 +3,14 @@ import matplotlib.pyplot as plt
 import scipy as sp
 
 title = ['ginibre', 'pure']
-name = "out_dim4-16_GP.npy"
+name = "out_dim4-16_GP_2.npy"
 meas = ['rand', 'rand_bipartite', 'rand_separable', 'pauli']
 dim = [4, 8, 16]
 n_meas = np.array([1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024])
 n_sample = 4000
 
 c_meas = ['firebrick', 'goldenrod', 'dodgerblue', 'olive']
-m_s = 8 #markersize
+m_s = 6 #markersize
 l_w = 3 #linewidth
 f_s = 12 #fontsize
 
@@ -21,7 +21,7 @@ dur_data = np.load(name)[1, :, [0, 2]]
 
 #fid_data = fid_data[:, [0, 2]]
 
-fig, axs = plt.subplots(nrows=len(title), ncols=len(dim), figsize=(6 * len(dim), 4 * len(title)), layout="constrained")
+fig, axs = plt.subplots(nrows=len(title), ncols=len(dim), figsize=(12, 5), layout="constrained")
 
 coef = np.zeros((len(title), len(dim), len(meas), 2))
 coef_std = np.zeros((len(title), len(dim), len(meas), 2))
@@ -51,10 +51,11 @@ for j in range(len(title)):
         else: axs[j][k].set_ylim(-0.05, 1.05)
         axs[j][k].set_xticks([1, 10, 100, 1000])
         if k == 0: axs[j][k].set_ylabel(r'infidelity ($1-\bar{F}$)', fontsize=f_s)
-        if j == 1: axs[j][k].set_xlabel(r'number of measurements $M$', fontsize=f_s)
+        if j == 1: axs[j][k].set_xlabel(r'number of measurements $N$', fontsize=f_s)
         axs[j][k].set_title(title[j] + " dim= " + str(dim[k]))
-        axs[j][k].legend(fontsize= 10, loc='lower left')
         axs[j][k].grid()
+
+axs[0][0].legend(fontsize= 10, loc='lower left')
 
 plt.savefig("240722_bayesrisk.png", dpi= 300)
 

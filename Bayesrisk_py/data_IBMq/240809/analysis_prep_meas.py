@@ -22,11 +22,11 @@ metric =['HS']
 markers = ['o', 'x', 'd']
 m_s = 6 #markersize
 l_w = 2 #linewidth
-f_s = 10 #fontsize
+f_s = 12 #fontsize
 
 HS = np.load(name) #[estimator][simulation][preparation][meas][nmeas][sample]
 
-fig, axs = plt.subplots(nrows=2, ncols=3, figsize=(15, 8), layout="constrained")
+fig, axs = plt.subplots(nrows=2, ncols=3, figsize=(12, 5), layout="constrained")
 
 x = np.linspace(3, 45, 1000)
 
@@ -50,7 +50,7 @@ for j in range(len(recon)):
         else: 
             axs[k, j].set_ylim(-0.04, 0.84)
         if k == 1:
-            axs[k, j].set_xlabel(r'number of measurements $M$', fontsize=f_s)
+            axs[k, j].set_xlabel(r'number of measurements $N$', fontsize=f_s)
 
 
 
