@@ -200,10 +200,6 @@ def fidelity(a, b, p):
     # compute fidelity from density matrices in Pauli representation
     return qt.metrics.fidelity(bvector_to_dm(a, p), bvector_to_dm(b, p))**2
 
-def fidelity(a, b, p):
-    # compute fidelity from density matrices in Pauli representation
-    return qt.metrics.fidelity(bvector_to_dm(a, p), bvector_to_dm(b, p))**2
-
 def HS_dist(a, b, p):
     # compute fidelity from density matrices in Pauli representation
     return qt.metrics.hilbert_dist(bvector_to_dm(a, p), bvector_to_dm(b, p))
@@ -322,3 +318,31 @@ def recon_from_MUB4(k, b):
     p3 = (x0_c[1] + x1_c[0] + x2_c[1] - 1) / 2
     p4 = (x0_c[1] + x1_c[1] + x2_c[0] - 1) / 2
     return(BDS_to_bvector(np.array([p1, p2, p3, p4])))
+
+########################################################
+# PAULI-BDS ADAPTIVE
+
+def next_Pauli_bds(counts, p, rng= None):
+    rng = np.random.default_rng(rng) 
+    counts = np.clip(counts, a_min=1, a_max= None) # avoid division with 0 and that no of the variances is 0
+    var1 = (counts[0]*counts[1])/((counts[0] + counts[1])**3) # p*(1-p)/N
+    var2 = (counts[2]*counts[3])/((counts[2] + counts[3])**3)
+    var3 = (counts[4]*counts[5])/((counts[4] + counts[5])**3)
+    temp = np.argmin(rng.shuffle(np.array([var1, var2, var3])))
+    u_p = [qt.Qobj([[1, 0], [0, 1]]), 1/np.sqrt(2) * qt.Qobj(np.array([[1, 1], [1, -1]])), 1/np.sqrt(2) * qt.Qobj([[1, 1], [1.j, -1.j]]), ] #I, H, SH
+    u = qt.tensor([u_p[temp], u_p[temp]]).full()
+    o = np.array([ket_to_bvector(u.T[i], p, 4) for i in range(4)])
+    return temp, o
+
+def adaptive_experiment(dim, p, n_m, rho_0, rng= None):
+    rng = np.random.default_rng(rng)
+    x = np.zeros(n_m, dtype=int)
+    b = np.zeros(n_m, dtype=int)
+    O = np.zeros((n_m, dim, dim**2))
+    counts = np.zeros(6)
+    for i in range(n_m):
+        b[i], O[i] = next_Pauli_bds(counts, p, rng)
+        x[i] = experiment([O[i]], rho_0, rng)
+        if x[i] == 0 or x[i] == 1: counts[2 * b[i]] += 1
+        else: counts[2 * b[i] + 1] += 1
+    return O, b, x

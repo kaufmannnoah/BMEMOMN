@@ -16,10 +16,10 @@ p = [create_pauli_basis(n_qi) for n_qi in n_q] # create Pauli basis
 #ENSEMBLE
 L_b = ['BDS_dirichlet'] # type of ensemble
 L = 10000 # number of sampling points
-rho_in_E = True # Flag whether the state to estimate is part of ensemble
+rho_in_E = False # Flag whether the state to estimate is part of ensemble
 
 #AVERAGES FOR BAYES RISK ESTIMATION
-n_sample = 10000
+n_sample = 4000
 
 #MEASUREMENTS
 M_b = ['bell', 'pauli_BDS', 'MUB4', 'pauli', 'rand', 'rand_bipartite'] # type of measurement
@@ -37,7 +37,7 @@ threshold = 1 / (L**2) # threshold below which weights are cut off
 n_active0 = np.arange(L)
 
 #RANDOM SEED
-seed = 20240724
+seed = 20240726
 rng = np.random.default_rng(seed)
 
 ########################################################

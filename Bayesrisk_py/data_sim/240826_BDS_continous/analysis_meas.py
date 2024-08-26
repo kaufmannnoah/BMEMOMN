@@ -11,7 +11,7 @@ yticks = np.array([0, 0.05, 0.1, 0.15, 0.2, 0.25])
 
 dim = [4]
 n_meas = [np.arange(3, 91, 3, dtype= int), np.arange(3, 91, 3, dtype= int), np.arange(5, 91, 5, dtype= int), np.arange(9, 91, 9, dtype= int), np.arange(3, 91, 3, dtype= int), np.arange(3, 91, 3, dtype= int)]
-n_sample = 10000
+n_sample = 4000
 
 recon =['Bayesian estimation', 'maximum likelihood estimaton', 'direct inversion']
 metric =['fidelity', 'HS']

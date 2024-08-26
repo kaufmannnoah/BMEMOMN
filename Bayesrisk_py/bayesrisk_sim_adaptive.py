@@ -1,6 +1,5 @@
 import numpy as np
 from joblib import Parallel, delayed
-import time
 
 from functions.functions_paulibasis import *
 from functions.functions_estimation import *
@@ -15,15 +14,15 @@ p = [create_pauli_basis(n_qi) for n_qi in n_q] # create Pauli basis
 
 #ENSEMBLE
 L_b = ['BDS_dirichlet'] # type of ensemble
-L = 10000 # number of sampling points
-rho_in_E = True # Flag whether the state to estimate is part of ensemble
+L = 1000 # number of sampling points
+rho_in_E = False # Flag whether the state to estimate is part of ensemble
 
 #AVERAGES FOR BAYES RISK ESTIMATION
-n_sample = 10000
+n_sample = 10
 
 #MEASUREMENTS
-M_b = ['bell', 'pauli_BDS', 'MUB4', 'pauli', 'rand', 'rand_bipartite'] # type of measurement
-M = [np.arange(3, 91, 3, dtype= int), np.arange(3, 91, 3, dtype= int), np.arange(5, 91, 5, dtype= int), np.arange(9, 91, 9, dtype= int), np.arange(3, 91, 3, dtype= int), np.arange(3, 91, 3, dtype= int)]
+M_b = ['bell', 'pauli_BDS', 'pauli_BDS_adapt'] # type of measurement
+M = [np.arange(30, 91, 30, dtype= int)]*len(M_b)
 
 #METRIC
 out_m = ['fidelity', 'HS', 'fid_MLE', 'HS_MLE', 'fid_recon', 'HS_recon'] # fixed!
@@ -37,7 +36,7 @@ threshold = 1 / (L**2) # threshold below which weights are cut off
 n_active0 = np.arange(L)
 
 #RANDOM SEED
-seed = 20240724
+seed = 20240726
 rng = np.random.default_rng(seed)
 
 ########################################################
@@ -45,14 +44,17 @@ rng = np.random.default_rng(seed)
 
 def func(dim, p, m_basis, n_m, r, w0, rho_0, rng= None):    
     #Estimation
-    O, b = create_POVM(n_m, p, dim, rng, type= m_basis, ret_basis= True)
-    x = experiment(O, rho_0, rng)
+    if m_basis == 'pauli_BDS_adapt': O, b, x = adaptive_experiment(dim, p, n_m, rho_0, rng)
+    else:
+        O, b = create_POVM(n_m, p, dim, rng, type= m_basis, ret_basis= True)
+        x = experiment(O, rho_0, rng)
+    
     w = bayes_update(r, w0, x, O, n_active0, threshold)
-
+    
     #MLE
     rho_mle = MLE_BDS(x, O)
 
-    if m_basis == 'pauli_BDS': 
+    if m_basis == 'pauli_BDS' or m_basis == 'pauli_BDS_adapt': 
         rho_recon = recon_from_paulibell(x, b)
         fid_recon = np.round(fidelity(rho_0, rho_recon, p), decimals= 7)
         HS_recon = np.round(HS_dist(rho_0, rho_recon, p), decimals= 7)
@@ -91,18 +93,19 @@ for in_lb, lb_i in enumerate(L_b):
     for in_d, d_i in enumerate(dim):
         r, w0 = create_ensemble(L, p[in_d], d_i, rng, type= lb_i)
         if rho_in_E: rho_0 = [r[rng.integers(L)] for _ in range(n_sample)]
-        else: rho_0 = [create_ensemble(1, p[in_d], d_i, rng, type= lb_i)[0] for _ in range(n_sample)]
+        else: rho_0 = [create_ensemble(1, p[in_d], d_i, rng, type= lb_i)[0][0] for _ in range(n_sample)]
         
         #Measurement Basis
         for in_mb, mb_i in enumerate(M_b):
+
             np.save(mb_i, np.ones(1))
 
             #Number of Measurements
             for in_m, m_i in enumerate(M[in_mb]):
                 #Spawn Pseudo Random Number Generators for Paralelization
                 child_rngs = rng.spawn(n_sample)
-                out[:, in_lb, in_d, in_mb, in_m, :] = np.array(Parallel(n_jobs=cores)(delayed(func)(d_i, p[in_d], mb_i, m_i, r, w0, rho_0[k], child_rngs[k]) for k in range(n_sample))).T
-                #for k in range(n_sample):
-                    #out[:, in_lb, in_d, in_mb, in_m, k] = np.array(func(d_i, p[in_d], mb_i, m_i, r, w0, rho_0[k], rng))
+                #out[:, in_lb, in_d, in_mb, in_m, :] = np.array(Parallel(n_jobs=cores)(delayed(func)(d_i, p[in_d], mb_i, m_i, r, w0, rho_0[k], child_rngs[k]) for k in range(n_sample))).T
+                for k in range(n_sample):
+                    out[:, in_lb, in_d, in_mb, in_m, k] = np.array(func(d_i, p[in_d], mb_i, m_i, r, w0, rho_0[k], rng))
 
 np.save("MLE_HS", out)
