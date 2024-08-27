@@ -14,11 +14,11 @@ p = [create_pauli_basis(n_qi) for n_qi in n_q] # create Pauli basis
 
 #ENSEMBLE
 L_b = ['BDS_dirichlet'] # type of ensemble
-L = 1000 # number of sampling points
+L = 3 # number of sampling points
 rho_in_E = False # Flag whether the state to estimate is part of ensemble
 
 #AVERAGES FOR BAYES RISK ESTIMATION
-n_sample = 10
+n_sample = 100
 
 #MEASUREMENTS
 M_b = ['bell', 'pauli_BDS', 'pauli_BDS_adapt'] # type of measurement
@@ -37,6 +37,7 @@ n_active0 = np.arange(L)
 
 #RANDOM SEED
 seed = 20240726
+seed = None
 rng = np.random.default_rng(seed)
 
 ########################################################
@@ -86,6 +87,8 @@ def func(dim, p, m_basis, n_m, r, w0, rho_0, rng= None):
 ########################################################
 #MAIN
 
+rho_00 = BDS_to_bvector(np.array([0.5, 0.5, 0.0, 0.0]))
+
 #Ensemble Types
 for in_lb, lb_i in enumerate(L_b):
 
@@ -94,6 +97,7 @@ for in_lb, lb_i in enumerate(L_b):
         r, w0 = create_ensemble(L, p[in_d], d_i, rng, type= lb_i)
         if rho_in_E: rho_0 = [r[rng.integers(L)] for _ in range(n_sample)]
         else: rho_0 = [create_ensemble(1, p[in_d], d_i, rng, type= lb_i)[0][0] for _ in range(n_sample)]
+        rho_0 = [rho_00] * n_sample
         
         #Measurement Basis
         for in_mb, mb_i in enumerate(M_b):
@@ -107,5 +111,17 @@ for in_lb, lb_i in enumerate(L_b):
                 #out[:, in_lb, in_d, in_mb, in_m, :] = np.array(Parallel(n_jobs=cores)(delayed(func)(d_i, p[in_d], mb_i, m_i, r, w0, rho_0[k], child_rngs[k]) for k in range(n_sample))).T
                 for k in range(n_sample):
                     out[:, in_lb, in_d, in_mb, in_m, k] = np.array(func(d_i, p[in_d], mb_i, m_i, r, w0, rho_0[k], rng))
+
+print('direct')
+HS_MLE = np.average(out[5, 0, 0], axis= 2) #[estimator][nmeas][meas][sample]
+print(HS_MLE)
+print()
+print('MLE')
+HS_MLE = np.average(out[3, 0, 0], axis= 2) #[estimator][nmeas][meas][sample]
+print(HS_MLE)
+print()
+print('Bayesian')
+HS_MLE = np.average(out[1, 0, 0], axis= 2) #[estimator][nmeas][meas][sample]
+print(HS_MLE)
 
 np.save("MLE_HS", out)

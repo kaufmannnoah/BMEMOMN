@@ -14,11 +14,12 @@ p = [create_pauli_basis(n_qi) for n_qi in n_q] # create Pauli basis
 
 #ENSEMBLE
 L_b = ['BDS_dirichlet'] # type of ensemble
-L = 10000 # number of sampling points
+L = 100000 # number of sampling points
 rho_in_E = True # Flag whether the state to estimate is part of ensemble
+rho_00 = BDS_to_bvector(np.array([0.5, 0.5, 0.0, 0.0]))
 
 #AVERAGES FOR BAYES RISK ESTIMATION
-n_sample = 10000
+n_sample = 1000
 
 #MEASUREMENTS
 M_b = ['bell', 'pauli_BDS', 'pauli_BDS_adapt'] # type of measurement
@@ -36,7 +37,7 @@ threshold = 1 / (L**2) # threshold below which weights are cut off
 n_active0 = np.arange(L)
 
 #RANDOM SEED
-seed = 20240726
+seed = 20240827
 rng = np.random.default_rng(seed)
 
 ########################################################
@@ -94,6 +95,7 @@ for in_lb, lb_i in enumerate(L_b):
         r, w0 = create_ensemble(L, p[in_d], d_i, rng, type= lb_i)
         if rho_in_E: rho_0 = [r[rng.integers(L)] for _ in range(n_sample)]
         else: rho_0 = [create_ensemble(1, p[in_d], d_i, rng, type= lb_i)[0][0] for _ in range(n_sample)]
+        rho_0 = [rho_00] * n_sample
         
         #Measurement Basis
         for in_mb, mb_i in enumerate(M_b):
@@ -108,4 +110,4 @@ for in_lb, lb_i in enumerate(L_b):
                 for k in range(n_sample):
                     out[:, in_lb, in_d, in_mb, in_m, k] = np.array(func(d_i, p[in_d], mb_i, m_i, r, w0, rho_0[k], rng))
 
-np.save("adapt", out)
+np.save("MLE_HS", out)
