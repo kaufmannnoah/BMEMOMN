@@ -37,23 +37,22 @@ for indj, j in enumerate([0, 2, 1]):
 
     x = np.linspace(30, 180, 1000)
     if j == 0: 
-        axs[*pos[indj]].plot(x, 1/(2*(x+4)), c= c_meas[0], ls= ":", label= r'Bell: $\frac{3}{5(N+4)}$')
+        axs[*pos[indj]].plot(x, 1/(2*(x+4)), c= c_meas[0], ls= ":", label= r'Bell: $\frac{1}{2(N+4)}$')
     if j == 1: 
-        axs[*pos[indj]].plot(x, 1/(2*x), c= c_meas[0], ls= ":", label= r'Bell: $\frac{3}{5N}$')
+        axs[*pos[indj]].plot(x, 1/(2*x), c= c_meas[0], ls= ":", label= r'Bell: $\frac{1}{2N}$')
     if j == 2:
-        axs[*pos[indj]].plot(x, 1/(2*x), c= c_meas[0], ls= ":", label= r'Bell: $\frac{3}{5N}$')
-        axs[*pos[indj]].plot(x, 3/(2*x), c= c_meas[1], ls= ":", label= r'XX_YY_ZZ: $\frac{9}{5N}$')
+        axs[*pos[indj]].plot(x, 1/(2*x), c= c_meas[0], ls= ":", label= r'Bell: $\frac{1}{2N}$')
+        axs[*pos[indj]].plot(x, 3/(2*x), c= c_meas[1], ls= ":", label= r'XX_YY_ZZ: $\frac{3}{2cN}$')
 
     axs[*pos[indj]].set_title(recon[j])
-    axs[*pos[indj]].set_xlim(2, 182)
+    axs[*pos[indj]].set_xlim(-8, 188)
     axs[*pos[indj]].set_ylim(*lims[j])
-    axs[*pos[indj]].set_xticks(n_meas[0][1::2])
+    axs[*pos[indj]].set_xticks([0, 60, 120, 180])
     axs[*pos[indj]].set_yticks(yticks)
     axs[*pos[indj]].legend(fontsize= f_s, loc='upper right')
     axs[*pos[indj]].grid()
-    axs[0].set_xlabel(r'number of measurements $N$', fontsize=f_s)
-    axs[1].set_xlabel(r'number of measurements $N$', fontsize=f_s)
-    axs[0].set_ylabel(r'average risk (HS)', fontsize=f_s)
+    axs[j].set_xlabel(r'number of measurements $N$', fontsize=f_s)
+axs[0].set_ylabel(r'average risk (HS)', fontsize=f_s)
 
 plt.savefig("BDS_meas", dpi= 600)
 plt.show()

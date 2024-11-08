@@ -2,3 +2,4 @@ DATA_2q_rankcomparison_woMC
 *.npy
 aa_testfile.py
 __pycache__
+quantum_plots

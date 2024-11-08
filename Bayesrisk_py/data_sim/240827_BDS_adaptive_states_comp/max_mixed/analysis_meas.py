@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 title = ['BDS_dirichlet']
-name = "adapt.npy"
+name = "adapt_mixed.npy"
 
 meas = ['bell', 'pauli_BDS', 'pauli_BDS_adapt']
 c_meas = ['firebrick', 'goldenrod', 'dodgerblue', 'olive', 'red', 'blue']
@@ -11,7 +11,7 @@ yticks = np.array([0, 0.025, 0.05, 0.075, 0.1, 0.125])
 
 dim = [4]
 n_meas = [np.arange(30, 181, 30, dtype= int)]*3
-n_sample = 10000
+n_sample =1000
 
 recon =['Bayesian estimation', 'maximum likelihood estimaton', 'direct inversion']
 metric =['fidelity', 'HS']
@@ -37,12 +37,12 @@ for indj, j in enumerate([0, 2, 1]):
 
     x = np.linspace(30, 180, 1000)
     if j == 0: 
-        axs[*pos[indj]].plot(x, 3/(5*(x+4)), c= c_meas[0], ls= ":", label= r'Bell: $\frac{3}{5(N+4)}$')
+        axs[*pos[indj]].plot(x, 3*x/(4*(x+4)**2), c= c_meas[0], ls= ":", label= r'Bell: $\frac{3 N}{4(N+4)^2}$')
     if j == 1: 
-        axs[*pos[indj]].plot(x, 3/(5*x), c= c_meas[0], ls= ":", label= r'Bell: $\frac{3}{5N}$')
+        axs[*pos[indj]].plot(x, 3/(4*x), c= c_meas[0], ls= ":", label= r'Bell: $\frac{3}{4N}$')
     if j == 2:
-        axs[*pos[indj]].plot(x, 3/(5*x), c= c_meas[0], ls= ":", label= r'Bell: $\frac{3}{5N}$')
-        axs[*pos[indj]].plot(x, 9/(5*x), c= c_meas[1], ls= ":", label= r'XX_YY_ZZ: $\frac{9}{5N}$')
+        axs[*pos[indj]].plot(x, 3/(4*x), c= c_meas[0], ls= ":", label= r'Bell: $\frac{3}{4N}$')
+        axs[*pos[indj]].plot(x, 9/(4*x), c= c_meas[1], ls= ":", label= r'XX_YY_ZZ: $\frac{9}{4N}$')
 
     axs[*pos[indj]].set_title(recon[j])
     axs[*pos[indj]].set_xlim(-8, 188)
